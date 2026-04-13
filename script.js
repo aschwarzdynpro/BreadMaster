@@ -100,6 +100,17 @@ const PRESETS = [
   },
 ];
 
+// Speicher- und URL-Parameter-Schlüssel
+const STORAGE_KEY = "breadmaster.recipes.v1";
+const URL_FLOUR_KEYS = {
+  weizen550: "w5",
+  weizenVK:  "wv",
+  dinkel550: "d5",
+  dinkelVK:  "dv",
+  roggen550: "r5",
+  roggenVK:  "rv",
+};
+
 const els = {
   inputs: Object.fromEntries(FLOUR_IDS.map(id => [id, document.getElementById(id)])),
   timeSlider: document.getElementById("timeSlider"),
@@ -127,24 +138,54 @@ const els = {
   vorteigDetails:   document.getElementById("vorteigDetails"),
   vorteigNote:      document.getElementById("vorteigNote"),
   hauptteigDetails: document.getElementById("hauptteigDetails"),
+  // Saved recipes / share
+  savedContainer: document.getElementById("savedContainer"),
+  btnSave:        document.getElementById("btnSave"),
+  btnShare:       document.getElementById("btnShare"),
 };
 
-function applyPreset(preset) {
+function getCurrentState() {
+  const amounts = {};
   for (const id of FLOUR_IDS) {
-    els.inputs[id].value = preset.amounts[id] || 0;
+    amounts[id] = Math.max(0, parseFloat(els.inputs[id].value) || 0);
   }
-  els.timeSlider.value = preset.time;
+  const state = {
+    amounts,
+    time: parseFloat(els.timeSlider.value) || 3,
+  };
+  if (els.vorteigToggle.checked) {
+    state.vorteig = {
+      type: getVorteigType(),
+      pct: parseFloat(els.vorteigSlider.value) || 20,
+    };
+  }
+  return state;
+}
 
-  if (preset.vorteig) {
+function applyState(state) {
+  for (const id of FLOUR_IDS) {
+    els.inputs[id].value = (state.amounts && state.amounts[id]) || 0;
+  }
+  if (state.time != null) els.timeSlider.value = state.time;
+
+  if (state.vorteig) {
     els.vorteigToggle.checked = true;
-    els.vorteigSlider.value = preset.vorteig.pct;
+    els.vorteigSlider.value = state.vorteig.pct;
     for (const input of els.vorteigTypes) {
-      input.checked = input.value === preset.vorteig.type;
+      input.checked = input.value === state.vorteig.type;
     }
   } else {
     els.vorteigToggle.checked = false;
   }
   calc();
+}
+
+function applyPreset(preset) {
+  applyState({
+    amounts: preset.amounts,
+    time: preset.time,
+    vorteig: preset.vorteig,
+  });
 }
 
 function renderPresets() {
@@ -280,6 +321,201 @@ function updateVorteigUI() {
   els.vorteigDesc.textContent = cfg.desc;
 }
 
+// --- URL state ------------------------------------------------------
+
+function stateToQuery(state) {
+  const p = new URLSearchParams();
+  for (const id of FLOUR_IDS) {
+    if (state.amounts[id] > 0) {
+      p.set(URL_FLOUR_KEYS[id], String(Math.round(state.amounts[id])));
+    }
+  }
+  p.set("t", String(state.time));
+  if (state.vorteig) {
+    p.set("vt", state.vorteig.type);
+    p.set("vp", String(state.vorteig.pct));
+  }
+  return p.toString();
+}
+
+function stateFromQuery(search) {
+  const p = new URLSearchParams(search);
+  let found = false;
+  const state = { amounts: {}, time: 3 };
+  for (const id of FLOUR_IDS) {
+    const raw = p.get(URL_FLOUR_KEYS[id]);
+    if (raw != null) {
+      const v = parseFloat(raw);
+      if (v > 0) {
+        state.amounts[id] = v;
+        found = true;
+      }
+    }
+  }
+  if (p.has("t")) {
+    state.time = parseFloat(p.get("t")) || 3;
+    found = true;
+  }
+  if (p.has("vt") && VORTEIG_TYPES[p.get("vt")]) {
+    state.vorteig = {
+      type: p.get("vt"),
+      pct: parseFloat(p.get("vp")) || 20,
+    };
+    found = true;
+  }
+  return found ? state : null;
+}
+
+// --- Saved recipes (localStorage) -----------------------------------
+
+function loadRecipes() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveRecipes(list) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch {
+    /* quota / private mode – ignore */
+  }
+}
+
+function addRecipe(name, state) {
+  const recipes = loadRecipes();
+  recipes.unshift({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+    name,
+    createdAt: Date.now(),
+    state,
+  });
+  saveRecipes(recipes);
+  renderSavedRecipes();
+}
+
+function deleteRecipe(id) {
+  saveRecipes(loadRecipes().filter(r => r.id !== id));
+  renderSavedRecipes();
+}
+
+function recipeMeta(state) {
+  const total = FLOUR_IDS.reduce((s, id) => s + (state.amounts[id] || 0), 0);
+  const parts = [`${Math.round(total)} g`, `${state.time} h`];
+  if (state.vorteig) {
+    const cfg = VORTEIG_TYPES[state.vorteig.type];
+    parts.push(`${cfg ? cfg.name : state.vorteig.type} ${state.vorteig.pct} %`);
+  }
+  return parts.join(" · ");
+}
+
+function renderSavedRecipes() {
+  const recipes = loadRecipes();
+  els.savedContainer.innerHTML = "";
+
+  if (recipes.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "saved-empty";
+    empty.textContent = 'Noch keine gespeicherten Rezepte. Klicke auf "Speichern", um die aktuelle Konfiguration zu sichern.';
+    els.savedContainer.appendChild(empty);
+    return;
+  }
+
+  const grid = document.createElement("div");
+  grid.className = "saved-grid";
+
+  for (const recipe of recipes) {
+    const item = document.createElement("div");
+    item.className = "saved-item";
+
+    const main = document.createElement("button");
+    main.type = "button";
+    main.className = "saved-main";
+    main.innerHTML = '<span class="saved-name"></span><span class="saved-meta"></span>';
+    main.querySelector(".saved-name").textContent = recipe.name;
+    main.querySelector(".saved-meta").textContent = recipeMeta(recipe.state);
+    main.addEventListener("click", () => {
+      applyState(recipe.state);
+      showToast(`"${recipe.name}" geladen`);
+    });
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "saved-delete";
+    del.setAttribute("aria-label", `${recipe.name} löschen`);
+    del.title = "Löschen";
+    del.innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (confirm(`Rezept "${recipe.name}" löschen?`)) {
+        deleteRecipe(recipe.id);
+      }
+    });
+
+    item.appendChild(main);
+    item.appendChild(del);
+    grid.appendChild(item);
+  }
+
+  els.savedContainer.appendChild(grid);
+}
+
+// --- Toast ----------------------------------------------------------
+
+let toastTimer = null;
+function showToast(message) {
+  let toast = document.querySelector(".toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.className = "toast";
+    document.body.appendChild(toast);
+  }
+  toast.textContent = message;
+  clearTimeout(toastTimer);
+  requestAnimationFrame(() => toast.classList.add("show"));
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+}
+
+// --- Save / Share handlers ------------------------------------------
+
+function hasAnyFlour(state) {
+  return FLOUR_IDS.some(id => (state.amounts[id] || 0) > 0);
+}
+
+function handleSave() {
+  const state = getCurrentState();
+  if (!hasAnyFlour(state)) {
+    showToast("Bitte zuerst Mehlmengen eingeben");
+    return;
+  }
+  const name = prompt("Name für das Rezept:", "Mein Brot");
+  if (!name || !name.trim()) return;
+  addRecipe(name.trim(), state);
+  showToast("Rezept gespeichert");
+}
+
+async function handleShare() {
+  const state = getCurrentState();
+  if (!hasAnyFlour(state)) {
+    showToast("Bitte zuerst Mehlmengen eingeben");
+    return;
+  }
+  const url = `${location.origin}${location.pathname}?${stateToQuery(state)}`;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast("Link in Zwischenablage kopiert");
+  } catch {
+    prompt("Link zum Kopieren:", url);
+  }
+}
+
+// --- Helpers --------------------------------------------------------
+
 function formatTime(hours) {
   if (hours < 1) return `${Math.round(hours * 60)} Min`;
   const h = Math.floor(hours);
@@ -387,7 +623,20 @@ els.vorteigSlider.addEventListener("input", calc);
 for (const input of els.vorteigTypes) {
   input.addEventListener("change", calc);
 }
+els.btnSave.addEventListener("click", handleSave);
+els.btnShare.addEventListener("click", handleShare);
 
 renderPresets();
+renderSavedRecipes();
 updateVorteigUI();
-calc();
+
+const urlState = stateFromQuery(location.search);
+if (urlState) {
+  applyState(urlState);
+  // Clean up the URL so a refresh doesn't keep reloading the same state,
+  // but keep the history entry so the user can still "back".
+  history.replaceState({}, "", location.pathname);
+  setTimeout(() => showToast("Rezept aus Link geladen"), 200);
+} else {
+  calc();
+}
