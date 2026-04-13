@@ -298,6 +298,71 @@ html, body {
   line-height: 1.4;
 }
 
+/* Fluent pivot (tabs) */
+.pivot {
+  display: flex;
+  gap: 24px;
+  margin: 4px 0 16px;
+  padding: 0;
+  border-bottom: 1px solid var(--stroke-default);
+}
+
+.pivot-tab {
+  position: relative;
+  padding: 8px 2px 12px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--ease-std);
+}
+
+.pivot-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform var(--motion-med) var(--ease-decel);
+}
+
+.pivot-tab:hover {
+  color: var(--text-primary);
+}
+
+.pivot-tab.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.pivot-tab.active::after {
+  transform: scaleX(1);
+}
+
+.pivot-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+.pivot-panel {
+  animation: pivot-fade var(--motion-med) var(--ease-decel);
+}
+
+@keyframes pivot-fade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* Saved recipes */
 .saved-grid {
   display: grid;

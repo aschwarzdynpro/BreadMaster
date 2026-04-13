@@ -26,14 +26,8 @@
 
   <main class="container">
     <section class="card">
-      <h2>Rezept-Presets</h2>
-      <p class="hint">Wähle eine Vorlage, um Mehlmengen und Stockgarezeit mit einem Klick zu befüllen. Du kannst die Werte danach frei anpassen.</p>
-      <div class="preset-grid" id="presetGrid"></div>
-    </section>
-
-    <section class="card">
       <div class="card-head">
-        <h2>Meine Rezepte</h2>
+        <h2>Rezepte</h2>
         <div class="btn-row">
           <button type="button" class="btn btn-secondary" id="btnSave">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -52,8 +46,21 @@
           </button>
         </div>
       </div>
-      <p class="hint">Sichere deine aktuellen Einstellungen oder teile sie per Link mit anderen.</p>
-      <div id="savedContainer"></div>
+
+      <div class="pivot" role="tablist" aria-label="Rezepte">
+        <button type="button" class="pivot-tab active" role="tab" aria-selected="true" aria-controls="panelPresets" data-panel="panelPresets">Vorlagen</button>
+        <button type="button" class="pivot-tab" role="tab" aria-selected="false" aria-controls="panelSaved" data-panel="panelSaved">Meine Rezepte</button>
+      </div>
+
+      <div class="pivot-panel" id="panelPresets" role="tabpanel" aria-labelledby="tabPresets">
+        <p class="hint">Wähle eine Vorlage, um Mehlmengen, Vorteig und Stockgarezeit mit einem Klick zu befüllen.</p>
+        <div class="preset-grid" id="presetGrid"></div>
+      </div>
+
+      <div class="pivot-panel" id="panelSaved" role="tabpanel" hidden>
+        <p class="hint">Deine gespeicherten Konfigurationen. Zum Speichern oder Teilen nutze die Buttons oben rechts.</p>
+        <div id="savedContainer"></div>
+      </div>
     </section>
 
     <section class="card">

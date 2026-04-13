@@ -496,7 +496,29 @@ function handleSave() {
   const name = prompt("Name für das Rezept:", "Mein Brot");
   if (!name || !name.trim()) return;
   addRecipe(name.trim(), state);
+  activatePivotTab("panelSaved");
   showToast("Rezept gespeichert");
+}
+
+// --- Pivot (tabs) ---------------------------------------------------
+
+function activatePivotTab(panelId) {
+  const tabs = document.querySelectorAll(".pivot-tab");
+  const panels = document.querySelectorAll(".pivot-panel");
+  tabs.forEach(tab => {
+    const active = tab.dataset.panel === panelId;
+    tab.classList.toggle("active", active);
+    tab.setAttribute("aria-selected", active ? "true" : "false");
+  });
+  panels.forEach(panel => {
+    panel.hidden = panel.id !== panelId;
+  });
+}
+
+function setupPivot() {
+  document.querySelectorAll(".pivot-tab").forEach(tab => {
+    tab.addEventListener("click", () => activatePivotTab(tab.dataset.panel));
+  });
 }
 
 async function handleShare() {
@@ -626,6 +648,7 @@ for (const input of els.vorteigTypes) {
 els.btnSave.addEventListener("click", handleSave);
 els.btnShare.addEventListener("click", handleShare);
 
+setupPivot();
 renderPresets();
 renderSavedRecipes();
 updateVorteigUI();
