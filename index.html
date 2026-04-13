@@ -98,6 +98,35 @@
       </div>
     </section>
 
+    <section class="card vorteig-card">
+      <div class="card-head">
+        <h2>Vorteig</h2>
+        <label class="switch" title="Vorteig aktivieren">
+          <input type="checkbox" id="vorteigToggle" />
+          <span class="switch-slider"></span>
+        </label>
+      </div>
+      <p class="hint">Ein Vorteig entwickelt mehr Aroma und macht das Brot bekömmlicher. Er wird viele Stunden vor dem Hauptteig angesetzt.</p>
+
+      <div class="vorteig-controls" id="vorteigControls" aria-disabled="true">
+        <div class="segmented" role="radiogroup" aria-label="Vorteig-Typ">
+          <label><input type="radio" name="vtype" value="poolish" checked /><span>Poolish</span></label>
+          <label><input type="radio" name="vtype" value="biga" /><span>Biga</span></label>
+          <label><input type="radio" name="vtype" value="sauer" /><span>Sauerteig</span></label>
+        </div>
+
+        <div class="slider-wrap compact">
+          <div class="slider-labels inline">
+            <span>Anteil am Mehl</span>
+            <span><strong id="vorteigPctValue">20</strong> %</span>
+          </div>
+          <input type="range" id="vorteigSlider" min="10" max="40" step="5" value="20" />
+        </div>
+
+        <div class="vorteig-desc" id="vorteigDesc"></div>
+      </div>
+    </section>
+
     <section class="card">
       <h2>Stockgare &amp; Hefe</h2>
       <p class="hint">Wähle, wie lange die Stockgare dauern soll. Kürzere Gare = mehr Hefe, längere Gare = weniger Hefe und mehr Aroma.</p>
@@ -129,7 +158,7 @@
         <div class="result-item highlight">
           <div class="result-label">Frischhefe</div>
           <div class="result-value"><span id="freshYeast">0.0</span> g</div>
-          <div class="result-sub">oder <span id="dryYeast">0.0</span> g Trockenhefe</div>
+          <div class="result-sub" id="yeastSub">oder <span id="dryYeast">0.0</span> g Trockenhefe</div>
         </div>
         <div class="result-item">
           <div class="result-label">Salz</div>
@@ -140,6 +169,27 @@
 
       <div class="tip" id="tip">
         Gib mindestens eine Mehlsorte ein, um deine Empfehlung zu erhalten.
+      </div>
+
+      <div class="subrecipe-section" id="subrecipeSection" hidden>
+        <h3 class="subrecipe-title">Aufteilung in Vorteig &amp; Hauptteig</h3>
+        <div class="subrecipe-grid">
+          <div class="subrecipe">
+            <div class="subrecipe-head">
+              <h4 id="vorteigHeading">Vorteig</h4>
+              <span class="subrecipe-tag" id="vorteigTag"></span>
+            </div>
+            <div class="subrecipe-body" id="vorteigDetails"></div>
+            <div class="subrecipe-note" id="vorteigNote"></div>
+          </div>
+          <div class="subrecipe">
+            <div class="subrecipe-head">
+              <h4>Hauptteig</h4>
+              <span class="subrecipe-tag">nach Reifung des Vorteigs</span>
+            </div>
+            <div class="subrecipe-body" id="hauptteigDetails"></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
