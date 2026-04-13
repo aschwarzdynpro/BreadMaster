@@ -13,6 +13,48 @@ const HYDRATION = {
 
 const FLOUR_IDS = Object.keys(HYDRATION);
 
+// Rezept-Presets. Jedes Preset füllt die Mehlfelder (in Gramm) und
+// setzt eine sinnvolle Stockgarezeit (h). Gesamt-Mehlmenge liegt
+// jeweils bei ~500 g – der Nutzer kann anschließend frei anpassen.
+const PRESETS = [
+  {
+    name: "Bauernbrot 70/30",
+    desc: "Weizen 550 & Roggen 1150, kräftiges Alltagsbrot",
+    time: 4,
+    amounts: { weizen550: 350, roggen550: 150 },
+  },
+  {
+    name: "Helles Weizenbrot",
+    desc: "100 % Weizen 550, luftige Krume",
+    time: 3,
+    amounts: { weizen550: 500 },
+  },
+  {
+    name: "Dinkel-Vollkorn",
+    desc: "100 % Dinkel Vollkorn, nussig-aromatisch",
+    time: 5,
+    amounts: { dinkelVK: 500 },
+  },
+  {
+    name: "Roggenmischbrot 60/40",
+    desc: "Kräftiges Roggen-VK mit Weizen 550",
+    time: 8,
+    amounts: { roggenVK: 300, weizen550: 200 },
+  },
+  {
+    name: "Kräftiges Vollkornbrot",
+    desc: "Weizen & Dinkel Vollkorn 50/50",
+    time: 6,
+    amounts: { weizenVK: 250, dinkelVK: 250 },
+  },
+  {
+    name: "Dinkelmisch hell",
+    desc: "Dinkel 550 mit Weizen 550, fein & mild",
+    time: 4,
+    amounts: { dinkel550: 300, weizen550: 200 },
+  },
+];
+
 const els = {
   inputs: Object.fromEntries(FLOUR_IDS.map(id => [id, document.getElementById(id)])),
   timeSlider: document.getElementById("timeSlider"),
@@ -24,7 +66,31 @@ const els = {
   dry:        document.getElementById("dryYeast"),
   salt:       document.getElementById("saltAmount"),
   tip:        document.getElementById("tip"),
+  presetGrid: document.getElementById("presetGrid"),
 };
+
+function applyPreset(preset) {
+  for (const id of FLOUR_IDS) {
+    els.inputs[id].value = preset.amounts[id] || 0;
+  }
+  els.timeSlider.value = preset.time;
+  calc();
+}
+
+function renderPresets() {
+  const frag = document.createDocumentFragment();
+  for (const preset of PRESETS) {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "preset-btn";
+    btn.innerHTML = `<span class="preset-name"></span><span class="preset-desc"></span>`;
+    btn.querySelector(".preset-name").textContent = preset.name;
+    btn.querySelector(".preset-desc").textContent = preset.desc;
+    btn.addEventListener("click", () => applyPreset(preset));
+    frag.appendChild(btn);
+  }
+  els.presetGrid.appendChild(frag);
+}
 
 function formatTime(hours) {
   if (hours < 1) return `${Math.round(hours * 60)} Min`;
@@ -106,4 +172,5 @@ for (const id of FLOUR_IDS) {
 }
 els.timeSlider.addEventListener("input", calc);
 
+renderPresets();
 calc();
