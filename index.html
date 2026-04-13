@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BreadMaster – Brot Wasser &amp; Hefe Rechner</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div class="logo" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="56" height="56">
+          <defs>
+            <linearGradient id="crust" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f6c177"/>
+              <stop offset="100%" stop-color="#a65c1b"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="32" cy="38" rx="26" ry="18" fill="url(#crust)" stroke="#5c3310" stroke-width="2"/>
+          <path d="M10 36 Q32 20 54 36" stroke="#5c3310" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M18 32 Q32 16 46 32" stroke="#5c3310" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <path d="M26 29 Q32 22 38 29" stroke="#5c3310" stroke-width="2" fill="none" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>BreadMaster</h1>
+        <p class="tagline">Dein Wasser- &amp; Hefe-Rechner für das perfekte Brot</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>Mehlmengen</h2>
+      <p class="hint">Gib die Menge in Gramm für jede Mehlsorte an, die du verwenden möchtest.</p>
+
+      <div class="flour-grid">
+        <div class="flour-group">
+          <h3>Weizen</h3>
+          <div class="flour-input">
+            <label for="weizen550">Type 550</label>
+            <div class="input-wrap">
+              <input type="number" id="weizen550" min="0" step="10" value="0" />
+              <span class="unit">g</span>
+            </div>
+          </div>
+          <div class="flour-input">
+            <label for="weizenVK">Vollkorn</label>
+            <div class="input-wrap">
+              <input type="number" id="weizenVK" min="0" step="10" value="0" />
+              <span class="unit">g</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flour-group">
+          <h3>Dinkel</h3>
+          <div class="flour-input">
+            <label for="dinkel550">Type 550</label>
+            <div class="input-wrap">
+              <input type="number" id="dinkel550" min="0" step="10" value="0" />
+              <span class="unit">g</span>
+            </div>
+          </div>
+          <div class="flour-input">
+            <label for="dinkelVK">Vollkorn</label>
+            <div class="input-wrap">
+              <input type="number" id="dinkelVK" min="0" step="10" value="0" />
+              <span class="unit">g</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flour-group">
+          <h3>Roggen</h3>
+          <div class="flour-input">
+            <label for="roggen550">Type 1150</label>
+            <div class="input-wrap">
+              <input type="number" id="roggen550" min="0" step="10" value="0" />
+              <span class="unit">g</span>
+            </div>
+          </div>
+          <div class="flour-input">
+            <label for="roggenVK">Vollkorn</label>
+            <div class="input-wrap">
+              <input type="number" id="roggenVK" min="0" step="10" value="0" />
+              <span class="unit">g</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Stockgare &amp; Hefe</h2>
+      <p class="hint">Wähle, wie lange die Stockgare dauern soll. Kürzere Gare = mehr Hefe, längere Gare = weniger Hefe und mehr Aroma.</p>
+
+      <div class="slider-wrap">
+        <input type="range" id="timeSlider" min="1" max="24" step="0.5" value="3" />
+        <div class="slider-labels">
+          <span>1 h (schnell)</span>
+          <span>24 h (lang &amp; aromatisch)</span>
+        </div>
+        <div class="time-display">
+          <span id="timeValue">3</span> Stunden Stockgare
+        </div>
+      </div>
+    </section>
+
+    <section class="card result-card">
+      <h2>Empfehlung</h2>
+      <div class="results">
+        <div class="result-item">
+          <div class="result-label">Mehl gesamt</div>
+          <div class="result-value"><span id="totalFlour">0</span> g</div>
+        </div>
+        <div class="result-item highlight">
+          <div class="result-label">Wasser</div>
+          <div class="result-value"><span id="waterAmount">0</span> g</div>
+          <div class="result-sub"><span id="hydration">0</span> % Hydration</div>
+        </div>
+        <div class="result-item highlight">
+          <div class="result-label">Frischhefe</div>
+          <div class="result-value"><span id="freshYeast">0.0</span> g</div>
+          <div class="result-sub">oder <span id="dryYeast">0.0</span> g Trockenhefe</div>
+        </div>
+        <div class="result-item">
+          <div class="result-label">Salz</div>
+          <div class="result-value"><span id="saltAmount">0</span> g</div>
+          <div class="result-sub">2 % des Mehls</div>
+        </div>
+      </div>
+
+      <div class="tip" id="tip">
+        Gib mindestens eine Mehlsorte ein, um deine Empfehlung zu erhalten.
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Gebacken mit <span class="heart">♥</span> – BreadMaster</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
